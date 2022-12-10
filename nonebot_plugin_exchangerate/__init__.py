@@ -3,7 +3,9 @@ from typing import Any, Dict
 
 from nonebot import on_endswith, on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
-from nonebot.params import Endswith, RegexDict
+from nonebot.params import RegexDict
+#from nonebot.params import Endswith
+#from nonebot.log import logger
 
 from .exchangerate import exchange_currency, get_currency_info, get_currency_list
 
@@ -15,17 +17,18 @@ async def _(matched: Dict[str, Any] = RegexDict()) -> None:
     with contextlib.suppress(ValueError):
         total = exchange_currency(matched["currency"], float(matched["amount"]))
         msg = f"{total}人民币"
-        await exchange.send(msg, reply_message=True)
+        if total != "查找的货币不存在":
+            await exchange.send(msg, reply_message=True)
 
 
 info = on_endswith("汇率")
 
 
 @info.handle()
-async def _(event: MessageEvent, suffix: str = Endswith()) -> None:
+async def _(event: MessageEvent) -> None:
     txt = event.get_plaintext()
     try:
-        currency = txt[: -len(suffix)]
+        currency = txt[: len(txt) - 2]
         if len(currency) > 5:
             return
         msg = get_currency_info(currency)
